@@ -1,32 +1,36 @@
 """
 El Wittmer
-05.23.22
+05.24.22
 
 Given a list of DOIs, returns a csv containing DOI and title.
-
-Run time of finding 50 dois: ~15 seconds
 """
 
 from habanero import Crossref
 import pandas as pd
 
-def doi_search(doi_list):
-  cr = Crossref()
-  header = ['DOI', 'Title']
-  df = pd.DataFrame(columns=header)
+# Set up
+cr = Crossref()
+source = pd.read_csv('/content/gdrive/My Drive/Colab Notebooks/Files/k50dois.csv')
+dois_to_list = source['doi'].tolist()
+df = pd.DataFrame(columns=['DOI', 'Title'])
 
-  for i in range(len(doi_list)):
-    a = cr.works(ids=doi_list[i])
-    df = df.append({'DOI' : a['message']['DOI'], 'Title' : a['message']['title']}, ignore_index = True)
-    
-  df.to_csv('title_results.csv', index=False)
-  return df
+# Batching
+increment = 35
+lower_bound = 0
+upper_bound = increment
 
+while upper_bound <= len(source):
+  # in the case where len(source) % increment != 0, some remainder will need to be accounted for
+  if len(source) - upper_bound < increment:
+    upper_bound = len(source)
 
-# habanero random_dois(int n) method allows for the random generation of up to 100 dois at a time. 
-rand_doi = Crossref()
-dois = rand_doi.random_dois(100)
+  a = cr.works(ids= dois_to_list[lower_bound : upper_bound])
 
-# other test dois
-# dois = ['10.1016/s0021-9258(19)52451-6','10.1038/227680a0','10.1016/0003-2697(76)90527-3','10.1006/meth.2001.1262','10.1107/s0108767307043930']
-doi_search(dois)
+  for i in range(len(a)):
+    df = df.append({'DOI' : a[i]['message']['DOI'], 'Title' : a[i]['message']['title']}, ignore_index = True)
+
+  lower_bound += increment
+  upper_bound += increment
+
+df.to_csv('title_results.csv', index=False)
+df
