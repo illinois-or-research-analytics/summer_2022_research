@@ -1,6 +1,6 @@
 """
 El Wittmer
-05.18.2022
+05.30.2022
 modeled after code found here: https://techoverflow.net/2022/01/01/how-to-search-pubmed-entrez-api-with-python-and-filter-results-by-metadata/
 
 Things that need changed: 
@@ -50,6 +50,8 @@ for id in pubmedJson["esearchresult"]["idlist"]:
     publication_type = path["pubtype"]
 
     # format article id and account for missing DOI
+    # set DOI to none and update if DOI is found
+    doi = None
     for i in range(len(path["articleids"])):
       if path["articleids"][i]["idtype"] == "doi":
         doi = path["articleids"][i]["value"]
